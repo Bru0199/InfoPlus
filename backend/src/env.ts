@@ -6,7 +6,7 @@ dotenv.config();
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('4000').transform(Number),
-  // DATABASE_URL: z.string().url("DATABASE_URL must be a valid connection string"),
+  DATABASE_URL: z.string().url("DATABASE_URL must be a valid connection string"),
   
   // Auth
   // GOOGLE_CLIENT_ID: z.string().min(1, "Google Client ID is required"),
