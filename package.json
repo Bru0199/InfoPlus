@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@ai-sdk/langchain": "^2.0.44",
-    "@langchain/core": "^1.1.15"
-  }
-}
