@@ -2,6 +2,7 @@ import "./globals.css";
 import { inter, firaCode } from "../lib/fonts";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import Navbar from "@/components/Navbar";
+import { AuthModalProvider } from "@/components/AuthModalProvider";
 
 export const metadata = {
   title: "InfoPulse",
@@ -17,9 +18,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${firaCode.variable}`}>
         <ThemeProvider>
-          <Navbar/>
-          {children}
-          
+          <AuthModalProvider>
+            <Navbar />
+            {children}
+          </AuthModalProvider>
         </ThemeProvider>
       </body>
     </html>

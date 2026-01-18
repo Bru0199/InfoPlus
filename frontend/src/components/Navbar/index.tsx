@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { useAuthModal } from "@/components/AuthModalProvider";
 
 export default function Navbar() {
+  const { open } = useAuthModal();
+
   return (
     <nav className="flex justify-between items-center px-8 py-4 shadow-sm duration-300">
       {/* Logo + InfoPlus */}
@@ -19,12 +21,12 @@ export default function Navbar() {
       {/* Right side */}
       <div className="flex items-center gap-4">
         <ThemeToggle />
-        <Link href="/api/auth/signin">
-          <Button className="btn-primary">Login</Button>
-        </Link>
-        <Link href="/api/auth/signup">
-          <Button className="btn-outline">Sign Up</Button>
-        </Link>
+        <Button className="btn-primary" type="button" onClick={open}>
+          Login
+        </Button>
+        <Button className="btn-outline" type="button" onClick={open}>
+          Sign Up
+        </Button>
       </div>
     </nav>
   );
