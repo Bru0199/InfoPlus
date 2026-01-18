@@ -1,33 +1,24 @@
 import { Router } from "express";
 import passport from "passport";
+import { env } from "../env.ts";
 
 const authRouter = Router();
 
-// --- Triggers ---
-// authRouter.get(
-//   "/google",
-//   passport.authenticate("google", { scope: ["profile", "email"] }),
-// );
-
-const FRONTEND_URL = "http://localhost:3000";
-
-
+const REDIRECT_URL = env.FRONTEND_URL || "http://localhost:3000";
 authRouter.get("/google", (req, res, next) => {
   if (req.isAuthenticated()) {
-    return res.redirect(`${FRONTEND_URL}/chat`);
+    return res.redirect(`${REDIRECT_URL}/chat`);
   }
-  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+  passport.authenticate("google", { scope: ["profile", "email"] })(
+    req,
+    res,
+    next,
+  );
 });
 
-// authRouter.get(
-//   "/github",
-//   passport.authenticate("github", { scope: ["user:email"] }),
-// );
-
-// Updated GitHub Trigger with Gatekeeper
 authRouter.get("/github", (req, res, next) => {
   if (req.isAuthenticated()) {
-    return res.redirect(`${FRONTEND_URL}/chat`);
+    return res.redirect(`${REDIRECT_URL}/chat`);
   }
   passport.authenticate("github", { scope: ["user:email"] })(req, res, next);
 });
@@ -36,13 +27,13 @@ authRouter.get("/github", (req, res, next) => {
 authRouter.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
-  (req, res) => res.redirect("http://localhost:3000/chat"),
+  (req, res) => res.redirect(`${REDIRECT_URL}/chat`),
 );
 
 authRouter.get(
   "/github/callback",
   passport.authenticate("github", { failureRedirect: "/login" }),
-  (req, res) => res.redirect("http://localhost:3000/chat"),
+  (req, res) => res.redirect(`${REDIRECT_URL}/chat`),
 );
 
 // --- Session Management ---

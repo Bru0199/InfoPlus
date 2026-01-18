@@ -21,10 +21,16 @@ const envSchema = z.object({
   // Tools
   OPENWEATHER_API_KEY: z.string().min(1, "OpenWeather API key is required"),
   EODHD_API_TOKEN: z.string().min(1, "Alpha Vantage API key is required"),
-  // F1MATCHES_API_KEY: z.string().min(1, "F1Mathes API key is required"),
+
 
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1, "OpenAI API key is required"),
+  OPENROUTER_API_KEY: z.string().min(1, "OpenAI API key is required"),
+  
   SESSION_SECRET:z.string().min(1, "SessionSecret key is required"),
+
+  FRONTEND_URL:z
+    .string()
+    .url("Frondend must be a valid connection string")
 
 });
 

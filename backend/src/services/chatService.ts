@@ -1,9 +1,4 @@
-import {
-  streamText,
-  convertToModelMessages,
-  type StreamTextResult,
-  type CoreMessage,
-} from "ai";
+import { streamText, type StreamTextResult, type ModelMessage } from "ai";
 import { geminiModel } from "../chat/ai.ts";
 import { allTools } from "../chat/tools.ts";
 import { db } from "../db/index.ts";
@@ -19,35 +14,25 @@ export const ChatService = {
     conversationId: string,
     messages: any[],
   ): Promise<StreamTextResult<any, any>> {
-    // 1. Check if this is the "First Time" for this ID
     const existingConvo = await db
       .select()
       .from(conversationsTable)
       .where(eq(conversationsTable.id, conversationId))
       .limit(1);
 
-    // If it doesn't exist, it's a NEW chat. We make it "EXISTING" by inserting it.
     if (existingConvo.length === 0) {
-      console.log("🆕 State: NEW. Initializing conversation in DB...");
-
       await db.insert(conversationsTable).values({
         id: conversationId,
         userId: userId,
         title: messages[0]?.content?.substring(0, 40) || "New Chat",
       });
     } else {
-      // If it exists, it is already an EXISTING chat.
-      console.log("🔄 State: EXISTING. Appending to history...");
-
-      // We just update the 'updatedAt' to keep it fresh
       await db
         .update(conversationsTable)
         .set({ updatedAt: new Date() })
         .where(eq(conversationsTable.id, conversationId));
     }
 
-    // 2. Add this explicit return type
-    // Save User Message logic...
     const lastUserMessage = messages[messages.length - 1];
     if (lastUserMessage.role === "user") {
       await db.insert(messagesTable).values({
@@ -59,9 +44,15 @@ export const ChatService = {
       });
     }
 
-    // const modelMessages = await convertToModelMessages(messages);
+    const safeMessages = Array.isArray(messages) ? messages : [];
 
-    const coreMessages: CoreMessage[] = safeMessages.map((m) => ({
+    if (safeMessages.length === 0) {
+      throw new Error(
+        "ChatService received an empty or undefined messages array.",
+      );
+    }
+
+    const coreMessages: ModelMessage[] = safeMessages.map((m) => ({
       role: m.role ?? "user", // Fallback role
       content: m.content
         ? typeof m.content === "string"
@@ -72,25 +63,62 @@ export const ChatService = {
 
     return streamText({
       model: geminiModel,
-      messages: modelMessages,
+      system: `
+You are a real-time assistant. 
+- If the user asks about weather in any way, detect the city or location they mention, and call the 'getWeather' tool and Put the detected city/location directly into the 'location' parameter. 
+- Do not answer about weather yourself; always use the tool.
+
+- If the user asks about stock prices, detect the ticker symbol and call 'getStockPrice'. Put that detected symbol into 'symbol' parameter
+
+- If the user asks about F1 races, call 'getF1Matches'.
+
+Always extract the necessary value from the user's message automatically.
+- For weather, stock prices, or F1, call the appropriate tool immediately.
+- DO NOT explain that you are calling a tool. 
+- DO NOT provide internal reasoning or "Chain of Thought."
+- Only output the final tool call or the final natural language response based on the tool's result.
+
+`,
+      messages: coreMessages,
       tools: allTools,
       maxSteps: 5,
+      retries: 0,
       onFinish: async ({ response }) => {
+        console.log("---------------------------");
+        console.log("Called OnFinish");
+        console.log("---------------------------");
+
         for (const msg of response.messages) {
-          if (msg.role !== "user") {
-            await db.insert(messagesTable).values({
-              conversationId,
-              userId,
-              role: msg.role as any,
-              content:
-                typeof msg.content === "string"
-                  ? msg.content
-                  : JSON.stringify(msg.content),
-              toolCalls: "toolCalls" in msg ? (msg.toolCalls as any) : null,
-              toolResult:
-                "toolResults" in msg ? (msg.toolResults as any) : null,
-            });
-          }
+          if (msg.role === "user") continue;
+
+          // A. Detect Tool Calls (Assistant Message)
+          const toolCalls =
+            (msg as any).toolCalls ||
+            (Array.isArray(msg.content)
+              ? msg.content.filter((p) => p.type === "tool-call")
+              : null);
+
+          // B. Detect Tool Results (Tool Message)
+          const toolResults =
+            (msg as any).toolResults ||
+            (Array.isArray(msg.content)
+              ? msg.content.filter((p) => p.type === "tool-result")
+              : null);
+
+          await db.insert(messagesTable).values({
+            conversationId,
+            userId,
+            role: msg.role as any,
+            content:
+              typeof msg.content === "string"
+                ? msg.content
+                : JSON.stringify(msg.content),
+            // If it's the assistant, we save the call. If it's the tool, we save the result.
+            toolCalls: toolCalls?.length ? JSON.stringify(toolCalls) : null,
+            toolResult: toolResults?.length
+              ? JSON.stringify(toolResults)
+              : null,
+          });
         }
       },
     });
