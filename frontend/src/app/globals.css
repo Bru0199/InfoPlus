@@ -1,80 +1,277 @@
+/* globals.css */
 @import "tailwindcss";
 
+/* :root {
+  --background: #f9fafb;
+  --foreground: #0f172a;
 
-/* Light mode */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e5e7eb;
+
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --accent: #e2e8f0;
+  --accent-foreground: #0f172a;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --radius: 0.5rem;
+}
+.dark {
+  --background: #121e30;
+  --foreground: #f8fafc;
+
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --border: #1e293b;
+
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+
+  --destructive: #f87171;
+  --destructive-foreground: #0f172a;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+nav {
+  background-color: var(--background);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--foreground);
+}
+
+p {
+  color: var(--muted-foreground);
+}
+
+.logo {
+  background-color: var(--primary);
+}
+
+.card {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btn-outline {
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+.btn-outline:hover {
+  background-color: var(--accent);
+} */
+
+
+/* ===============================
+   Brand Color Variables
+================================ */
+
 :root {
-  --background-primary: #ffffff;
-  --background-secondary: #f5f5f5;
+  /* Backgrounds */
+  --bg-main: #ffffff;           /* Light mode background */
+  --bg-muted: #f0f0f0;          /* Light gray surfaces */
+  --bg-dark: #121e30;           /* Dark mode background */
 
-  --text-primary: #1f1f1f;
-  --text-secondary: #555555;
+  /* Text */
+  --text-primary: #121e30;      /* Dark blue text (light mode) */
+  --text-muted: #1f1f1f;        /* Deep gray */
+  --text-invert: #ffffff;       /* White text */
 
-  --accent: #007bff;
+  /* Brand */
+  --brand-blue: #007bff;        /* InfoPlus blue */
+
+  /* Accents */
   --success: #28a745;
   --warning: #ff6b00;
 
-  --card-background: #f5f5f5;
-  --card-border: #e0e0e0;
-
-  --font-sans: 'Inter', Arial, Helvetica, sans-serif;
-  --font-mono: 'Fira Code', monospace;
+  /* UI */
+  --border: #e0e0e0;
+  --hover-color:#f0eaea;
+  --radius: 2rem;
 }
 
-/* Dark mode using data-theme attribute */
-[data-theme='dark'] {
-  --background-primary: #121e30;
-  --background-secondary: #1f2937;
+/* ===============================
+   Dark Mode Overrides
+================================ */
+
+.dark {
+  --bg-main: #121e30;
+  --bg-muted: #18263a;
 
   --text-primary: #ffffff;
-  --text-secondary: #bbbbbb;
+  --text-muted: #f5f5f5;
 
-  --accent: #007bff;
-  --success: #28a745;
-  --warning: #ff6b00;
-
-  --card-background: #1f2937;
-  --card-border: #2c3a50;
+  /* --border: #24344d; */
+  --border: #3b4658;
+  --hover-color:#192538;
 }
 
+/* ===============================
+   Base Styles
+================================ */
 
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-sans);
-  background-color: var(--background-primary);
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ===============================
+   Typography
+================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: var(--text-primary);
 }
 
-/* Card Component */
+p {
+  color: var(--text-muted);
+}
+
+/* ===============================
+   Brand Text (InfoPlus)
+================================ */
+
+.brand-info {
+  color: var(--text-primary); /* Dark blue (light) / White (dark) */
+}
+
+.brand-plus {
+  color: var(--brand-blue);   /* Always blue */
+}
+
+/* ===============================
+   Navigation
+================================ */
+
+nav {
+  background-color: var(--bg-main);
+}
+
+/* ===============================
+   Buttons
+================================ */
+
+.btn-primary {
+  background-color: var(--brand-blue);
+  color: var(--text-invert);
+  border-radius: var(--radius);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+}
+.btn-outline:hover {
+  background-color:var(--hover-color);
+
+}
+
+/* ===============================
+   States
+================================ */
+
+.text-success {
+  color: var(--success);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
 .card {
-  background-color: var(--card-background);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 1rem;
-  margin: 1rem 0;
-}
-
-/* Buttons */
-button {
-  font-family: var(--font-sans);
-  background-color: var(--accent);
-  color: var(--background-primary);
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-button:hover {
-  opacity: 0.85;
-}
-
-/* Input Fields */
-input {
-  font-family: var(--font-sans);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid var(--card-border);
-  background-color: var(--background-secondary);
+  background-color: var(--bg-muted);
   color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
+
+
+@keyframes bounce-up-down {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce-up-down {
+  animation: bounce-up-down 1.5s ease-in-out infinite;
+}
+
+.animate-bounce-up-down:hover{
+    animation: none;
+}
+
+
+
+.bounce-button{animation:bounce-up-down 1.5s ease-in-out infinite;}
+.bounce-button:hover{animation-play-state:paused;}
+

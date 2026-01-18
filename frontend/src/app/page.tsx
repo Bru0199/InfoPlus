@@ -1,7 +1,13 @@
+import LandingHero from "@/components/Hero/LandingHero";
+import ThemePreview from "@/components/Hero/ThemePreview";
+
 export default function Home() {
   return (
     <>
-      <h1 className="font-sans text-4xl">Home</h1>
+    
+    <LandingHero/>
+    <ThemePreview/>
+  
     </>
   );
 }

@@ -1,5 +1,7 @@
 import "./globals.css";
 import { inter, firaCode } from "../lib/fonts";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import Navbar from "@/components/Navbar";
 
 export const metadata = {
   title: "InfoPulse",
@@ -12,9 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${firaCode.variable}`}>
-        {children}
+        <ThemeProvider>
+          <Navbar/>
+          {children}
+          
+        </ThemeProvider>
       </body>
     </html>
   );
