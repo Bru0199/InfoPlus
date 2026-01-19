@@ -5,8 +5,6 @@ import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react"; // lucide-react SVG icons
 import { Button } from "@/components/ui/button";
 
-
-
 const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -25,7 +23,7 @@ const ThemeToggle: React.FC = () => {
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
       {theme === "dark" ? (
-        <Sun className="w-5 h-5" />   
+        <Sun className="w-5 h-5" />
       ) : (
         <Moon className="w-5 h-5" />
       )}

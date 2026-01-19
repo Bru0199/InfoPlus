@@ -1,117 +1,8 @@
 /* globals.css */
 @import "tailwindcss";
+@import "tw-animate-css";
 
-/* :root {
-  --background: #f9fafb;
-  --foreground: #0f172a;
-
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #e5e7eb;
-
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-
-  --accent: #e2e8f0;
-  --accent-foreground: #0f172a;
-
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-
-  --radius: 0.5rem;
-}
-.dark {
-  --background: #121e30;
-  --foreground: #f8fafc;
-
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --border: #1e293b;
-
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
-
-  --destructive: #f87171;
-  --destructive-foreground: #0f172a;
-}
-
-* {
-  border-color: var(--border);
-}
-
-html,
-body {
-  height: 100%;
-}
-
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-feature-settings: "rlig" 1, "calt" 1;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-nav {
-  background-color: var(--background);
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--foreground);
-}
-
-p {
-  color: var(--muted-foreground);
-}
-
-.logo {
-  background-color: var(--primary);
-}
-
-.card {
-  background-color: var(--card);
-  color: var(--card-foreground);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-}
-
-a {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-.btn-primary {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-}
-
-.btn-outline {
-  border: 1px solid var(--border);
-  background-color: transparent;
-  color: var(--foreground);
-}
-
-.btn-outline:hover {
-  background-color: var(--accent);
-} */
-
+@custom-variant dark (&:is(.dark *));
 
 /* ===============================
    Brand Color Variables
@@ -139,6 +30,17 @@ a:hover {
   --border: #e0e0e0;
   --hover-color:#f0eaea;
   --radius: 2rem;
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+
+
 }
 
 /* ===============================
@@ -155,6 +57,14 @@ a:hover {
   /* --border: #24344d; */
   --border: #3b4658;
   --hover-color:#192538;
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
 /* ===============================
@@ -164,12 +74,16 @@ a:hover {
 html,
 body {
   height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   background-color: var(--bg-main);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: Intra;
 }
 
 /* ===============================
@@ -252,7 +166,6 @@ nav {
   border-radius: var(--radius);
 }
 
-
 @keyframes bounce-up-down {
   0%, 100% {
     transform: translateY(0);
@@ -270,8 +183,34 @@ nav {
     animation: none;
 }
 
-
-
 .bounce-button{animation:bounce-up-down 1.5s ease-in-out infinite;}
 .bounce-button:hover{animation-play-state:paused;}
+/* 
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+} */
 
+/* @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */
+
+
+
+@media (max-width: 768px) {
+  /* This ensures the content doesn't get squashed when the sidebar opens on mobile */
+  [data-sidebar-wrapper] {
+    flex-direction: column;
+  }
+}

@@ -14,12 +14,10 @@ export default function LandingHero() {
         Live data, live insights — all in one AI assistant
       </p>
 
-      <Link href="/api/auth/signin">
-        <button
-          className=" btn-primary text-white font-semibold rounded-lg px-8 py-4 text-lg animate-bounce-up-down hover:scale-105 hover:[animation-play-state:paused] transition-transform">
+      <Link href="/login">
+        <button className=" btn-primary text-white font-semibold rounded-lg px-8 py-4 text-lg animate-bounce-up-down hover:scale-105 hover:[animation-play-state:paused] transition-transform">
           Get Started
         </button>
-
       </Link>
     </main>
   );
