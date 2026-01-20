@@ -1,0 +1,216 @@
+/* globals.css */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ===============================
+   Brand Color Variables
+================================ */
+
+:root {
+  /* Backgrounds */
+  --bg-main: #ffffff;           /* Light mode background */
+  --bg-muted: #f0f0f0;          /* Light gray surfaces */
+  --bg-dark: #121e30;           /* Dark mode background */
+
+  /* Text */
+  --text-primary: #121e30;      /* Dark blue text (light mode) */
+  --text-muted: #1f1f1f;        /* Deep gray */
+  --text-invert: #ffffff;       /* White text */
+
+  /* Brand */
+  --brand-blue: #007bff;        /* InfoPlus blue */
+
+  /* Accents */
+  --success: #28a745;
+  --warning: #ff6b00;
+
+  /* UI */
+  --border: #e0e0e0;
+  --hover-color:#f0eaea;
+  --radius: 2rem;
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+
+
+}
+
+/* ===============================
+   Dark Mode Overrides
+================================ */
+
+.dark {
+  --bg-main: #121e30;
+  --bg-muted: #18263a;
+
+  --text-primary: #ffffff;
+  --text-muted: #f5f5f5;
+
+  /* --border: #24344d; */
+  --border: #3b4658;
+  --hover-color:#192538;
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+/* ===============================
+   Base Styles
+================================ */
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: Intra;
+}
+
+/* ===============================
+   Typography
+================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-muted);
+}
+
+/* ===============================
+   Brand Text (InfoPlus)
+================================ */
+
+.brand-info {
+  color: var(--text-primary); /* Dark blue (light) / White (dark) */
+}
+
+.brand-plus {
+  color: var(--brand-blue);   /* Always blue */
+}
+
+/* ===============================
+   Navigation
+================================ */
+
+nav {
+  background-color: var(--bg-main);
+}
+
+/* ===============================
+   Buttons
+================================ */
+
+.btn-primary {
+  background-color: var(--brand-blue);
+  color: var(--text-invert);
+  border-radius: var(--radius);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+}
+.btn-outline:hover {
+  background-color:var(--hover-color);
+
+}
+
+/* ===============================
+   States
+================================ */
+
+.text-success {
+  color: var(--success);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.card {
+  background-color: var(--bg-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+@keyframes bounce-up-down {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce-up-down {
+  animation: bounce-up-down 1.5s ease-in-out infinite;
+}
+
+.animate-bounce-up-down:hover{
+    animation: none;
+}
+
+.bounce-button{animation:bounce-up-down 1.5s ease-in-out infinite;}
+.bounce-button:hover{animation-play-state:paused;}
+/* 
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+} */
+
+/* @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */
+
+
+
+@media (max-width: 768px) {
+  /* This ensures the content doesn't get squashed when the sidebar opens on mobile */
+  [data-sidebar-wrapper] {
+    flex-direction: column;
+  }
+}
