@@ -44,7 +44,7 @@ export default function AppSidebar() {
 
   useEffect(() => {
     api
-      .get("chat/conversations")
+      .get("/chat/conversations")
       .then((res) => {
         if (Array.isArray(res.data)) {
           const sortedChats = res.data.sort(

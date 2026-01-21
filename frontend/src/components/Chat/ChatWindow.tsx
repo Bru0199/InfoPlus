@@ -286,9 +286,16 @@ export default function ChatWindow() {
       console.log("📦 Non-streaming response received:", json);
       replaceLastAssistant(json);
       
+      // Keep streaming effect active for text animation to complete
+      // Approximate based on response length (10ms per char + buffer)
+      const responseText = JSON.stringify(json);
+      const animationDuration = Math.max(500, responseText.length * 10);
+      setTimeout(() => {
+        setIsStreaming(false);
+      }, animationDuration);
+      
       // Backend already saved from /chat/message
       console.log("✅ Response complete. Final messages:", latestMessages.current);
-      setIsStreaming(false);
       
       if (isNewChat) {
         skipNextFetch.current = true;

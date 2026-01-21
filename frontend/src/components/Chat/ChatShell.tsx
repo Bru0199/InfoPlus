@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import AppSidebar from "./AppSidebar";
 import Navbar from "@/components/Navbar/index";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -10,7 +10,9 @@ export default function ChatShell({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <div className="flex h-screen w-full bg-[var(--bg-main)]">
         {/* Full height sidebar from top to bottom */}
-        <AppSidebar />
+        <Suspense fallback={<div className="w-64 bg-muted animate-pulse" />}>
+          <AppSidebar />
+        </Suspense>
 
         <SidebarInset className="flex flex-col flex-1 min-w-0 overflow-hidden">
           {/* Navbar shifts automatically when sidebar expands/reduces */}

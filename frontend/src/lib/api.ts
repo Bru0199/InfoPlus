@@ -1,7 +1,12 @@
 import axios from "axios";
 
+// Normalize base URL and ensure single /api prefix
+const rawBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const base = rawBase.replace(/\/$/, "");
+const baseWithApi = base.endsWith("/api") ? base : `${base}/api`;
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: baseWithApi,
   withCredentials: true, // MUST be true to send session cookies
   headers: {
     "Content-Type": "application/json",

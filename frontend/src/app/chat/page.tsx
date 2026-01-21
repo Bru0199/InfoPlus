@@ -2,25 +2,24 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChatWindow from "@/components/Chat/ChatWindow";
 import { api } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 
-export default function ChatMainPage() {
+function ChatMainPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [checkingHistory, setCheckingHistory] = useState(true);
 
   const [isReady, setIsReady] = useState(false);
-    
-useEffect(() => {
+
+  useEffect(() => {
     setIsReady(true);
   }, []);
 
   if (!isReady) return null;
-
 
   //   // Check for latest conversation
   //   api
@@ -47,6 +46,14 @@ useEffect(() => {
   // }
 
   return <ChatWindow />;
+}
+
+export default function ChatMainPage() {
+  return (
+    <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[var(--brand-blue)]" /></div>}>
+      <ChatMainPageContent />
+    </Suspense>
+  );
 }
 
 // "use client";

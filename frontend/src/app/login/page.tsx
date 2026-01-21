@@ -31,7 +31,10 @@ export default function LoginPage() {
   }, [router]);
 
   const handleLogin = (provider: "google" | "github") => {
-    window.location.href = `http://localhost:4000/api/auth/${provider}`;
+    const rawBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const base = rawBase.replace(/\/$/, "");
+    const authBase = base.endsWith("/api") ? base : `${base}/api`;
+    window.location.href = `${authBase}/auth/${provider}`;
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)] p-4 transition-colors duration-300">

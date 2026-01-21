@@ -33,7 +33,18 @@ const extractToolData = (item: any) => {
   
   // If no nested structure, the item itself IS the data (minus the type field)
   const { type, toolName, ...data } = item;
-  if (Object.keys(data).length > 0) return data;
+  
+  // If data has keys, return it (structured data like F1, weather, stock)
+  if (Object.keys(data).length > 0) {
+    // Check if it's a string that was spread into characters
+    // If all keys are numeric and values are single chars, reconstruct the string
+    const keys = Object.keys(data);
+    if (keys.every(k => /^\d+$/.test(k)) && keys.length > 0) {
+      // String was spread as { '0': 'a', '1': 'b', ... }
+      return keys.map(k => data[k]).join("");
+    }
+    return data;
+  }
   
   return null;
 };
@@ -64,7 +75,7 @@ export const MessageContent = ({ content, isLast, isStreaming }: { content: any;
   // Parse content if it's a string, handle if it's undefined
   let parsedContent: any[] = [];
   
-  console.log("🎨 MessageContent received content:", content);
+  console.log("🎨 MessageContent received content:", content, "isStreaming:", isStreaming, "isLast:", isLast);
   
   try {
     if (!content) {
@@ -113,23 +124,23 @@ export const MessageContent = ({ content, isLast, isStreaming }: { content: any;
 
           if (!toolData) return null;
 
-          // If tool returned TEXT response (not structured data), show as plain text
+          // If tool returned TEXT response (not structured data), show as plain text with typing
           if (isTextResponse(toolData)) {
             return (
               <div key={index} className="text-sm text-zinc-700 dark:text-zinc-300 italic">
-                {toolData}
+                <StreamingText text={toolData} isStreaming={isStreaming} />
               </div>
             );
           }
 
-          // If tool returned NA/missing data, show constant message
+          // If tool returned NA/missing data, show constant message with typing
           if (hasNAData(toolData)) {
             return (
               <div
                 key={index}
                 className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 p-3 rounded-lg text-sm text-zinc-600 dark:text-zinc-400"
               >
-                Data not available at this moment. Please try again later.
+                <StreamingText text="Data not available at this moment. Please try again later." isStreaming={isStreaming} />
               </div>
             );
           }
@@ -156,13 +167,7 @@ const StreamingText = ({ text, isStreaming }: { text: string; isStreaming?: bool
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
-    // If not streaming, show instantly
-    if (!isStreaming) {
-      setDisplayedText(text);
-      return;
-    }
-
-    // If streaming, type it out
+    // Always animate text - don't wait for isStreaming flag
     let i = 0;
     setDisplayedText("");
     const interval = setInterval(() => {
@@ -171,7 +176,7 @@ const StreamingText = ({ text, isStreaming }: { text: string; isStreaming?: bool
       if (i > text.length) clearInterval(interval);
     }, 10); // Speed of text appearance
     return () => clearInterval(interval);
-  }, [text, isStreaming]);
+  }, [text]);
 
   return <div className="text-inherit">{displayedText}</div>;
 };
