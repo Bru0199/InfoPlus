@@ -60,7 +60,7 @@ const hasNAData = (data: any): boolean => {
   return data?.close === "NA" || data?.price === "NA" || data?.timestamp === "NA";
 };
 
-export const MessageContent = ({ content, isLast }: { content: any; isLast?: boolean }) => {
+export const MessageContent = ({ content, isLast, isStreaming }: { content: any; isLast?: boolean; isStreaming?: boolean }) => {
   // Parse content if it's a string, handle if it's undefined
   let parsedContent: any[] = [];
   
@@ -100,7 +100,7 @@ export const MessageContent = ({ content, isLast }: { content: any; isLast?: boo
 
         // Handle Normal Text with streaming effect
         if (item.type === "text" && item.text) {
-          return <StreamingText key={index} text={item.text} isLast={isLast} />;
+          return <StreamingText key={index} text={item.text} isStreaming={isStreaming} />;
         }
 
         // Handle Tool Results
@@ -152,17 +152,17 @@ export const MessageContent = ({ content, isLast }: { content: any; isLast?: boo
   );
 };
 
-const StreamingText = ({ text, isLast }: { text: string; isLast?: boolean }) => {
+const StreamingText = ({ text, isStreaming }: { text: string; isStreaming?: boolean }) => {
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
-    // If not the last message, show instantly
-    if (!isLast) {
+    // If not streaming, show instantly
+    if (!isStreaming) {
       setDisplayedText(text);
       return;
     }
 
-    // If it's the last message, type it out
+    // If streaming, type it out
     let i = 0;
     setDisplayedText("");
     const interval = setInterval(() => {
@@ -171,7 +171,7 @@ const StreamingText = ({ text, isLast }: { text: string; isLast?: boolean }) => 
       if (i > text.length) clearInterval(interval);
     }, 10); // Speed of text appearance
     return () => clearInterval(interval);
-  }, [text, isLast]);
+  }, [text, isStreaming]);
 
   return <div className="text-inherit">{displayedText}</div>;
 };

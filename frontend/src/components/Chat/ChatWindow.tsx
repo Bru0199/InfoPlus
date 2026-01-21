@@ -30,9 +30,11 @@ export default function ChatWindow() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const latestMessages = useRef<any[]>([]);
   const skipNextFetch = useRef(false);
+  const lastConversationId = useRef<string | undefined>(undefined);
   // Ensure we always have a reachable API base (fallback to localhost:4000 for dev)
   const apiBase = (
     api.defaults.baseURL ||
@@ -50,6 +52,14 @@ export default function ChatWindow() {
   useEffect(() => {
     if (!conversationId) {
       setMessages([]);
+      lastConversationId.current = undefined;
+      return;
+    }
+
+    // If we already have messages for this conversation, don't refetch
+    // This happens when we navigate from /chat to /chat/{id} after sending a message
+    if (latestMessages.current.length > 0 && lastConversationId.current === conversationId) {
+      console.log("✅ Messages already loaded for conversation", conversationId);
       return;
     }
 
@@ -57,9 +67,14 @@ export default function ChatWindow() {
     if (skipNextFetch.current) {
       console.log("⏭️ Skipping fetch - messages already loaded from stream");
       skipNextFetch.current = false;
+      lastConversationId.current = conversationId;
       return;
     }
 
+    // New conversation ID - fetch from backend
+    console.log("🔄 Fetching conversation", conversationId);
+    lastConversationId.current = conversationId;
+    
     setIsLoading(true);
     api
       .get(`/chat/conversation/${conversationId}`, {
@@ -183,6 +198,7 @@ export default function ChatWindow() {
 
     setInput("");
     setIsLoading(true);
+    setIsStreaming(true);
 
     const payload = {
       conversationId: activeId,
@@ -251,6 +267,7 @@ export default function ChatWindow() {
 
         // Streaming complete - backend already saved from /chat/message
         console.log("✅ Streaming complete. Final messages:", latestMessages.current);
+        setIsStreaming(false);
 
         if (isNewChat) {
           skipNextFetch.current = true;
@@ -271,6 +288,7 @@ export default function ChatWindow() {
       
       // Backend already saved from /chat/message
       console.log("✅ Response complete. Final messages:", latestMessages.current);
+      setIsStreaming(false);
       
       if (isNewChat) {
         skipNextFetch.current = true;
@@ -284,6 +302,7 @@ export default function ChatWindow() {
       });
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -388,7 +407,7 @@ export default function ChatWindow() {
                     msg.content
                   ) : (
                     // Assistant content is a JSON array - use MessageContent for unified handling
-                    <MessageContent content={msg.content} isLast={isLast} />
+                    <MessageContent content={msg.content} isLast={isLast} isStreaming={isStreaming && isLast} />
                   )}
                 </div>
               </div>
