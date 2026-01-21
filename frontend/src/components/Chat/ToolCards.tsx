@@ -53,12 +53,11 @@ export const WeatherCard = ({ data }: { data: any }) => {
 
 // 2. STOCK CARD
 export const StockCard = ({ data }: { data: any }) => {
-  const price = toNumber(data?.close ?? data?.price ?? data?.current ?? data?.last ?? data?.value, 0);
+  const price = toNumber(data?.close ?? data?.price ?? data?.current ?? data?.last ?? data?.value);
   const changePct = toNumber(
     data?.change_p ?? data?.percentChange ?? data?.percent ?? data?.percent_change ?? data?.changePercent,
-    0,
   );
-  const changeAbs = toNumber(data?.change ?? data?.change_amount, 0);
+  const changeAbs = toNumber(data?.change ?? data?.change_amount);
   const code = data?.code ?? data?.symbol ?? data?.ticker ?? data?.name ?? "N/A";
   const isPositive = (changePct ?? 0) >= 0;
 
@@ -93,25 +92,25 @@ export const StockCard = ({ data }: { data: any }) => {
 
 // 3. F1 MATCH CARD
 export const F1Card = ({ data }: { data: any }) => (
-  <div className="bg-zinc-950 text-white p-5 rounded-3xl shadow-2xl border-l-4 border-red-600 w-full max-w-[300px]">
+  <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-zinc-900 dark:to-zinc-950 text-black dark:text-white p-5 rounded-3xl shadow-2xl border-l-4 border-orange-600 dark:border-red-600 w-full max-w-[300px]">
     <div className="flex items-center gap-2 mb-4">
-      <Flag size={16} className="text-red-600" />
-      <span className="text-[10px] font-black tracking-widest uppercase text-zinc-400">
+      <Flag size={16} className="text-black dark:text-red-600" />
+      <span className="text-[10px] font-black tracking-widest uppercase text-black/80 dark:text-zinc-400">
         Next Grand Prix
       </span>
     </div>
-    <h3 className="text-lg font-black leading-tight mb-1">{data.raceName}</h3>
-    <p className="text-xs text-zinc-400 mb-4">{data.Circuit.circuitName}</p>
-    <div className="bg-zinc-900 rounded-2xl p-3">
+    <h3 className="text-lg font-black leading-tight mb-1 text-black dark:text-white">{data.raceName}</h3>
+    <p className="text-xs text-black/70 dark:text-zinc-300 mb-4">{data.Circuit.circuitName}</p>
+    <div className="bg-white/30 dark:bg-zinc-900 rounded-2xl p-3">
       <div className="flex justify-between text-[11px] mb-2">
-        <span className="text-zinc-500">Race Date</span>
-        <span className="font-bold">
+        <span className="text-black/70 dark:text-zinc-400">Race Date</span>
+        <span className="font-bold text-black dark:text-white">
           {new Date(data.date).toLocaleDateString()}
         </span>
       </div>
       <div className="flex justify-between text-[11px]">
-        <span className="text-zinc-500">Qualifying</span>
-        <span className="font-bold">{data.Qualifying.time}</span>
+        <span className="text-black/70 dark:text-zinc-400">Qualifying</span>
+        <span className="font-bold text-black dark:text-white">{data.Qualifying.time}</span>
       </div>
     </div>
   </div>

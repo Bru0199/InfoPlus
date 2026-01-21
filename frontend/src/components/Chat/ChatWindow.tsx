@@ -31,9 +31,17 @@ export default function ChatWindow() {
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const apiBase = (api.defaults.baseURL || process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+  const latestMessages = useRef<any[]>([]);
+  const skipNextFetch = useRef(false);
+  // Ensure we always have a reachable API base (fallback to localhost:4000 for dev)
+  const apiBase = (
+    api.defaults.baseURL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:4000"
+  ).replace(/\/$/, "");
 
   useEffect(() => {
+    latestMessages.current = messages;
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
@@ -44,6 +52,14 @@ export default function ChatWindow() {
       setMessages([]);
       return;
     }
+
+    // Skip fetch if we just navigated after streaming (messages already in state)
+    if (skipNextFetch.current) {
+      console.log("⏭️ Skipping fetch - messages already loaded from stream");
+      skipNextFetch.current = false;
+      return;
+    }
+
     setIsLoading(true);
     api
       .get(`/chat/conversation/${conversationId}`, {
@@ -53,7 +69,6 @@ export default function ChatWindow() {
         console.log(`📥 Loaded conversation ${conversationId}:`, res.status);
         if (res.status === 404) {
           console.log("⚠️ Conversation not found (404), keeping local messages");
-          // Don't clear messages - keep what we have from new chat
           return;
         }
         if (Array.isArray(res.data)) {
@@ -66,11 +81,12 @@ export default function ChatWindow() {
 
   const updateAssistantText = (text: string) => {
     setMessages((prev) => {
-      if (prev.length === 0) return prev;
-      const updated = [...prev];
+      const current = prev.length > 0 ? prev : latestMessages.current;
+      if (current.length === 0) return current;
+      const updated = [...current];
       const lastIdx = updated.length - 1;
       const last = updated[lastIdx];
-      if (!last || last.role !== "assistant") return prev;
+      if (!last || last.role !== "assistant") return current;
       const contentArray = Array.isArray(last.content)
         ? [...last.content].filter((c: any) => c?.type !== "loading")
         : [];
@@ -87,26 +103,45 @@ export default function ChatWindow() {
   };
 
   const appendAssistantToolResult = (item: any) => {
+    console.log("🔧 Appending tool result:", item);
     setMessages((prev) => {
-      if (prev.length === 0) return prev;
-      const updated = [...prev];
+      const current = prev.length > 0 ? prev : latestMessages.current;
+      if (current.length === 0) return current;
+      const updated = [...current];
       const lastIdx = updated.length - 1;
       const last = updated[lastIdx];
-      if (!last || last.role !== "assistant") return prev;
+      if (!last || last.role !== "assistant") return current;
 
       const contentArray = Array.isArray(last.content)
         ? [...last.content].filter((c: any) => c?.type !== "loading")
         : [];
       contentArray.push({ type: "tool-result", ...item });
       updated[lastIdx] = { ...last, content: contentArray };
+      console.log("✅ Updated assistant message:", updated[lastIdx]);
       return updated;
     });
   };
 
   const replaceLastAssistant = (replacement: any) => {
-    const payload = replacement?.role
-      ? replacement
-      : { role: "assistant", content: replacement?.content ?? replacement };
+    console.log("🔄 Replacing last assistant with:", replacement);
+    
+    // If replacement is a raw tool result (has raceName, season, etc.), wrap it
+    const isRawToolResult = replacement && !replacement.role && !Array.isArray(replacement.content);
+    
+    let payload;
+    if (isRawToolResult) {
+      // Wrap tool result in proper message format
+      payload = {
+        role: "assistant",
+        content: [{ type: "tool-result", ...replacement }]
+      };
+    } else {
+      payload = replacement?.role
+        ? replacement
+        : { role: "assistant", content: replacement?.content ?? replacement };
+    }
+    
+    console.log("📤 Final payload:", payload);
 
     setMessages((prev) => {
       if (prev.length === 0) return [payload];
@@ -117,7 +152,8 @@ export default function ChatWindow() {
           return updated;
         }
       }
-      return [...prev, payload];
+      const next = [...prev, payload];
+      return next;
     });
   };
 
@@ -130,12 +166,20 @@ export default function ChatWindow() {
     const userMessage = input.trim();
 
     // Add user message immediately
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setMessages((prev) => {
+      const next = [...prev, { role: "user", content: userMessage }];
+      latestMessages.current = next;
+      return next;
+    });
     // Add streaming placeholder for assistant (shows dots)
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: [{ type: "loading" }, { type: "text", text: "" }] },
-    ]);
+    setMessages((prev) => {
+      const next = [
+        ...prev,
+        { role: "assistant", content: [{ type: "loading" }, { type: "text", text: "" }] },
+      ];
+      latestMessages.current = next;
+      return next;
+    });
 
     setInput("");
     setIsLoading(true);
@@ -147,7 +191,10 @@ export default function ChatWindow() {
     };
 
     try {
-      const res = await fetch(`${apiBase}/chat/message`, {
+      const url = `${apiBase}/chat/message`;
+      console.log("➡️ POST", url);
+
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -185,6 +232,7 @@ export default function ChatWindow() {
             let parsed: any = null;
             try {
               parsed = JSON.parse(dataLine);
+              console.log("📦 Parsed event:", parsed);
             } catch {
               aggregatedText += dataLine;
               updateAssistantText(aggregatedText);
@@ -195,12 +243,17 @@ export default function ChatWindow() {
               aggregatedText += parsed.text;
               updateAssistantText(aggregatedText);
             } else if (parsed?.type === "tool-result") {
+              console.log("🛠️ Received tool-result:", parsed);
               appendAssistantToolResult(parsed);
             }
           }
         }
 
+        // Streaming complete - backend already saved from /chat/message
+        console.log("✅ Streaming complete. Final messages:", latestMessages.current);
+
         if (isNewChat) {
+          skipNextFetch.current = true;
           router.push(`/chat/${activeId}`);
         }
         return;
@@ -213,8 +266,14 @@ export default function ChatWindow() {
 
       // NON-STREAMING FALLBACK
       const json = await res.json();
+      console.log("📦 Non-streaming response received:", json);
       replaceLastAssistant(json);
+      
+      // Backend already saved from /chat/message
+      console.log("✅ Response complete. Final messages:", latestMessages.current);
+      
       if (isNewChat) {
+        skipNextFetch.current = true;
         router.push(`/chat/${activeId}`);
       }
     } catch (err: any) {
