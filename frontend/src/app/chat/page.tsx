@@ -8,6 +8,9 @@ import ChatWindow from "@/components/Chat/ChatWindow";
 import { api } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 
+// Mark this page as dynamic - don't prerender statically
+export const dynamic = "force-dynamic";
+
 function ChatMainPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
