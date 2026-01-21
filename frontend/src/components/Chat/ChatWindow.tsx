@@ -20,6 +20,7 @@ import { api } from "@/lib/api";
 
 import { TextMessage, hasTextType } from "./TextMessage";
 import { ToolMessage, hasToolResult } from "./ToolMessage";
+import { MessageContent } from "./MessageContent";
 
 export default function ChatWindow() {
   const params = useParams();
@@ -30,6 +31,7 @@ export default function ChatWindow() {
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const apiBase = (api.defaults.baseURL || process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -48,11 +50,76 @@ export default function ChatWindow() {
         validateStatus: (s) => (s >= 200 && s < 300) || s === 404,
       })
       .then((res) => {
-        if (res.status === 404) setMessages([]);
-        else if (Array.isArray(res.data)) setMessages(res.data);
+        console.log(`📥 Loaded conversation ${conversationId}:`, res.status);
+        if (res.status === 404) {
+          console.log("⚠️ Conversation not found (404), keeping local messages");
+          // Don't clear messages - keep what we have from new chat
+          return;
+        }
+        if (Array.isArray(res.data)) {
+          setMessages(res.data);
+        }
       })
+      .catch((err) => console.error("Error loading conversation:", err))
       .finally(() => setIsLoading(false));
   }, [conversationId]);
+
+  const updateAssistantText = (text: string) => {
+    setMessages((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      const lastIdx = updated.length - 1;
+      const last = updated[lastIdx];
+      if (!last || last.role !== "assistant") return prev;
+      const contentArray = Array.isArray(last.content)
+        ? [...last.content].filter((c: any) => c?.type !== "loading")
+        : [];
+      const textIndex = contentArray.findIndex((c: any) => c?.type === "text");
+      if (textIndex >= 0) {
+        contentArray[textIndex] = { ...contentArray[textIndex], type: "text", text };
+      } else {
+        contentArray.push({ type: "text", text });
+      }
+
+      updated[lastIdx] = { ...last, content: contentArray };
+      return updated;
+    });
+  };
+
+  const appendAssistantToolResult = (item: any) => {
+    setMessages((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      const lastIdx = updated.length - 1;
+      const last = updated[lastIdx];
+      if (!last || last.role !== "assistant") return prev;
+
+      const contentArray = Array.isArray(last.content)
+        ? [...last.content].filter((c: any) => c?.type !== "loading")
+        : [];
+      contentArray.push({ type: "tool-result", ...item });
+      updated[lastIdx] = { ...last, content: contentArray };
+      return updated;
+    });
+  };
+
+  const replaceLastAssistant = (replacement: any) => {
+    const payload = replacement?.role
+      ? replacement
+      : { role: "assistant", content: replacement?.content ?? replacement };
+
+    setMessages((prev) => {
+      if (prev.length === 0) return [payload];
+      const updated = [...prev];
+      for (let i = updated.length - 1; i >= 0; i -= 1) {
+        if (updated[i].role === "assistant") {
+          updated[i] = payload;
+          return updated;
+        }
+      }
+      return [...prev, payload];
+    });
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,28 +127,102 @@ export default function ChatWindow() {
 
     const isNewChat = !conversationId;
     const activeId = conversationId || uuidv4();
-    const currentInput = input;
+    const userMessage = input.trim();
 
-    setMessages((p) => [
-      ...p,
-      { role: "user", content: currentInput, conversationId: activeId },
+    // Add user message immediately
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    // Add streaming placeholder for assistant (shows dots)
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: [{ type: "loading" }, { type: "text", text: "" }] },
     ]);
+
     setInput("");
     setIsLoading(true);
 
+    const payload = {
+      conversationId: activeId,
+      messages: [{ role: "user", content: userMessage }],
+      stream: true,
+    };
+
     try {
-      const response = await api.post("/chat/message", {
-        conversationId: activeId,
-        messages: [{ role: "user", content: currentInput }],
+      const res = await fetch(`${apiBase}/chat/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
       });
 
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok && !res.body) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+
+      // STREAMING MODE: SSE/NDJSON/plain text chunks
+      if (
+        res.body &&
+        (contentType.includes("text/event-stream") ||
+          contentType.includes("application/x-ndjson") ||
+          contentType.includes("text/plain"))
+      ) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let aggregatedText = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+
+          const events = chunk.split(/\n\n+/);
+          for (const evt of events) {
+            const line = evt.trim();
+            if (!line) continue;
+
+            const dataLine = line.replace(/^data:\s*/, "");
+            let parsed: any = null;
+            try {
+              parsed = JSON.parse(dataLine);
+            } catch {
+              aggregatedText += dataLine;
+              updateAssistantText(aggregatedText);
+              continue;
+            }
+
+            if (parsed?.type === "text" && typeof parsed.text === "string") {
+              aggregatedText += parsed.text;
+              updateAssistantText(aggregatedText);
+            } else if (parsed?.type === "tool-result") {
+              appendAssistantToolResult(parsed);
+            }
+          }
+        }
+
+        if (isNewChat) {
+          router.push(`/chat/${activeId}`);
+        }
+        return;
+      }
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Request failed: ${res.status} ${errorText}`);
+      }
+
+      // NON-STREAMING FALLBACK
+      const json = await res.json();
+      replaceLastAssistant(json);
       if (isNewChat) {
         router.push(`/chat/${activeId}`);
-      } else {
-        setMessages((p) => [...p, response.data]);
       }
-    } catch (err) {
-      console.error("Database Error:", err);
+    } catch (err: any) {
+      console.error("❌ Error sending message:", err);
+      replaceLastAssistant({
+        role: "assistant",
+        content: "Sorry, an error occurred. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -135,10 +276,19 @@ export default function ChatWindow() {
             const isLast = idx === messages.length - 1;
             // FILTER LOGIC: Check if assistant message has renderable content
             const isAssistant = msg.role === "assistant";
+            const hasLoading = (() => {
+              try {
+                const parsed = typeof msg.content === "string" ? JSON.parse(msg.content) : msg.content;
+                return Array.isArray(parsed) && parsed.some((i: any) => i?.type === "loading");
+              } catch {
+                return false;
+              }
+            })();
             const shouldShow =
               !isAssistant ||
               hasTextType(msg.content) ||
-              hasToolResult(msg.content);
+              hasToolResult(msg.content) ||
+              hasLoading;
 
             // Skip rendering if it's just a raw tool-call (prevents empty bubbles)
             if (!shouldShow) return null;
@@ -178,11 +328,8 @@ export default function ChatWindow() {
                     // User content is a plain string
                     msg.content
                   ) : (
-                    // Assistant content is a JSON array handled by components
-                    <>
-                      <TextMessage content={msg.content} isLast={isLast} />
-                      <ToolMessage content={msg.content} />
-                    </>
+                    // Assistant content is a JSON array - use MessageContent for unified handling
+                    <MessageContent content={msg.content} isLast={isLast} />
                   )}
                 </div>
               </div>
@@ -196,22 +343,7 @@ export default function ChatWindow() {
             </div>
           )} */}
 
-          {isLoading && (
-            <div className="flex items-start gap-3 md:gap-4 w-full animate-in fade-in slide-in-from-bottom-2">
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className="bg-muted border">
-                  <Bot size={18} />
-                </AvatarFallback>
-              </Avatar>
-              <div className="bg-white border border-[var(--border)] px-4 py-3 rounded-2xl rounded-tl-none shadow-sm">
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                  <span className="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce"></span>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Loading dots removed; streaming placeholder already renders live text */}
         </div>
       </div>
 

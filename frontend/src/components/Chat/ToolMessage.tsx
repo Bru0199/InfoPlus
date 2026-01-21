@@ -3,6 +3,22 @@
 import React from "react";
 import { WeatherCard, StockCard, F1Card } from "./ToolCards";
 
+const normalizeToolName = (name: string | undefined) => {
+  if (!name) return "";
+  const cleaned = name.replace(/[-_]/g, "").toLowerCase();
+  if (cleaned.includes("weather")) return "getWeather";
+  if (cleaned.includes("stock")) return "getStockPrice";
+  if (cleaned.includes("f1") || cleaned.includes("race")) return "getF1Matches";
+  return name;
+};
+
+const extractToolData = (item: any) => {
+  if (item?.output?.value !== undefined) return item.output.value;
+  if (item?.output !== undefined) return item.output;
+  if (item?.content !== undefined) return item.content;
+  return null;
+};
+
 export const hasToolResult = (content: any) => {
   try {
     const parsed = typeof content === "string" ? JSON.parse(content) : content;
@@ -29,9 +45,10 @@ export const ToolMessage = ({ content }: { content: any }) => {
     return (
       <div className="flex flex-col gap-4 mt-2">
         {toolResults.map((item, index) => {
-          const toolData = item.output.value;
+          const toolName = normalizeToolName(item.toolName);
+          const toolData = extractToolData(item);
 
-          switch (item.toolName) {
+          switch (toolName) {
             case "getWeather":
               return <WeatherCard key={index} data={toolData} />;
             case "getStockPrice":
