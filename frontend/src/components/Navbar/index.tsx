@@ -11,10 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Bot, LogOut, Settings, Trash2, User } from "lucide-react";
+import { Bot, LogOut, Settings, Trash2, User, Bug } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, debugAuthCheck } from "@/lib/api";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
@@ -122,11 +122,11 @@ export default function Navbar() {
               <DropdownMenuSeparator className="bg-[var(--border)]" />
 
               <DropdownMenuItem
-                onClick={handleClearHistory}
-                className="text-red-500 cursor-pointer focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950/30"
+                onClick={() => debugAuthCheck()}
+                className="cursor-pointer focus:bg-[var(--hover-color)] text-yellow-600 dark:text-yellow-400"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Clear All Chats</span>
+                <Bug className="mr-2 h-4 w-4" />
+                <span>Debug Auth</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="bg-[var(--border)]" />
