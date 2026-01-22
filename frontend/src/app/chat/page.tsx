@@ -15,12 +15,47 @@ function ChatMainPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [checkingHistory, setCheckingHistory] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     setIsReady(true);
   }, []);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        if (res.data.authenticated) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          router.replace("/login");
+        }
+      } catch (err) {
+        setIsAuthenticated(false);
+        router.replace("/login");
+      }
+    };
+
+    if (isReady) {
+      checkAuth();
+    }
+  }, [isReady, router]);
+
+  if (!isReady || isAuthenticated === null) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--brand-blue)]" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (!isReady) return null;
 

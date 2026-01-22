@@ -13,36 +13,11 @@ export const api = axios.create({
   },
 });
 
-// Log outgoing requests for debugging session/cookie issues
-api.interceptors.request.use((config) => {
-  console.log("API Request:", {
-    url: config.url,
-    method: config.method,
-    baseURL: config.baseURL,
-    withCredentials: config.withCredentials,
-    headers: config.headers,
-    cookies: typeof document !== "undefined" ? document.cookie : "server-side",
-  });
-  return config;
-});
+// Request interceptor (silent - no sensitive data logging)
+api.interceptors.request.use((config) => config);
 
-// Add response interceptor for debugging
+// Response interceptor (silent - no sensitive data logging)
 api.interceptors.response.use(
-  (response) => {
-    console.log("API Success:", response.status, response.data);
-    return response;
-  },
-  (error) => {
-    console.error("API Error Details:", {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-      },
-    });
-    return Promise.reject(error);
-  }
+  (response) => response,
+  (error) => Promise.reject(error)
 );

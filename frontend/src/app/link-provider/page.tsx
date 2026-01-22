@@ -32,9 +32,6 @@ function LinkProviderContent() {
   const providerId = searchParams.get("providerId");
 
   useEffect(() => {
-    console.log("Search params:", { email, provider, providerId });
-    console.log("Frontend Origin:", window.location.origin);
-    
     if (!email || !provider || !providerId) {
       setError("Invalid link request. Missing required parameters.");
       return;
@@ -52,8 +49,6 @@ function LinkProviderContent() {
 
     setIsLoading(true);
     try {
-      console.log("Link payload:", { email, provider, providerUserId: providerId });
-      console.log("Cookies before link:", document.cookie);
       const res = await api.post("/auth/link-provider", {
         email,
         provider,
