@@ -13,6 +13,19 @@ export const api = axios.create({
   },
 });
 
+// Log outgoing requests for debugging session/cookie issues
+api.interceptors.request.use((config) => {
+  console.log("API Request:", {
+    url: config.url,
+    method: config.method,
+    baseURL: config.baseURL,
+    withCredentials: config.withCredentials,
+    headers: config.headers,
+    cookies: typeof document !== "undefined" ? document.cookie : "server-side",
+  });
+  return config;
+});
+
 // Add response interceptor for debugging
 api.interceptors.response.use(
   (response) => {
