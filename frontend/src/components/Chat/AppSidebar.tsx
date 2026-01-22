@@ -22,6 +22,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 interface Chat {
   id: string; // uuid
@@ -56,12 +57,22 @@ export default function AppSidebar() {
       })
       .catch((err) => {
         console.error("Error fetching conversations:", err);
+        if (err.response?.status === 401) {
+          toast.error("Session expired", {
+            description: "Please log in again.",
+          });
+          router.push("/login");
+        } else {
+          toast.error("Failed to load conversations", {
+            description: "Please try again later.",
+          });
+        }
         setChats([]);
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [router]);
   const handleNewChat = () => {
     const newId = uuidv4();
 
