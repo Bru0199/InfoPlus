@@ -167,7 +167,12 @@ const StreamingText = ({ text, isStreaming }: { text: string; isStreaming?: bool
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
-    // Always animate text - don't wait for isStreaming flag
+    // Animate only when streaming; otherwise render full text immediately
+    if (!isStreaming) {
+      setDisplayedText(text);
+      return;
+    }
+
     let i = 0;
     setDisplayedText("");
     const interval = setInterval(() => {
@@ -176,7 +181,7 @@ const StreamingText = ({ text, isStreaming }: { text: string; isStreaming?: bool
       if (i > text.length) clearInterval(interval);
     }, 10); // Speed of text appearance
     return () => clearInterval(interval);
-  }, [text]);
+  }, [text, isStreaming]);
 
   return <div className="text-inherit">{displayedText}</div>;
 };

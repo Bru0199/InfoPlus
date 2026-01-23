@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import LandingHero from "@/components/Hero/LandingHero";
 import ThemePreview from "@/components/Hero/ThemePreview";
 import Navbar from "@/components/Navbar";
-import { api } from "@/lib/api";
+import { api, debugAuthCheck } from "@/lib/api";
 import { useState } from "react";
 
 export default function Home() {
@@ -17,15 +17,22 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log("🔍 Starting auth check...");
         const res = await api.get("/auth/me");
+        console.log("📊 Auth check response:", res.data);
         if (res.data.authenticated) {
           setIsAuthenticated(true);
           router.replace("/chat");
         } else {
+          console.log("❌ Not authenticated according to frontend response");
           setIsAuthenticated(false);
+          // Run debug check to see what backend is sending
+          setTimeout(() => debugAuthCheck(), 500);
         }
       } catch (err) {
+        console.error("❌ Auth check failed:", err);
         setIsAuthenticated(false);
+        setTimeout(() => debugAuthCheck(), 500);
       }
     };
 

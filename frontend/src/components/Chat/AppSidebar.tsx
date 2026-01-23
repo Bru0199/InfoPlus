@@ -73,6 +73,46 @@ export default function AppSidebar() {
         setIsLoading(false);
       });
   }, [router]);
+
+  // Listen for newly created conversations (from ChatWindow) and update sidebar without reload
+  useEffect(() => {
+    const handleConversationUpdated = (evt: Event) => {
+      const e = evt as CustomEvent<{ id: string; title?: string; isNew?: boolean; createdAt?: string; updatedAt?: string }>;
+      const detail = e.detail;
+      if (!detail || !detail.id) return;
+
+      setChats((prev) => {
+        // Check if conversation already exists
+        const existingIndex = prev.findIndex((c) => c.id === detail.id);
+        
+        if (existingIndex >= 0) {
+          // Update existing conversation title
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            title: detail.title || updated[existingIndex].title,
+            updatedAt: detail.updatedAt || new Date().toISOString(),
+          };
+          return updated;
+        } else {
+          // Add new conversation
+          const newEntry: Chat = {
+            id: detail.id,
+            title: detail.title || "New Chat",
+            userId: "",
+            createdAt: detail.createdAt || new Date().toISOString(),
+            updatedAt: detail.updatedAt || new Date().toISOString(),
+          };
+          return [newEntry, ...prev];
+        }
+      });
+    };
+
+    window.addEventListener("infoplus:conversation-updated", handleConversationUpdated as EventListener);
+    return () => {
+      window.removeEventListener("infoplus:conversation-updated", handleConversationUpdated as EventListener);
+    };
+  }, []);
   const handleNewChat = () => {
     const newId = uuidv4();
 

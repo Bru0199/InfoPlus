@@ -269,6 +269,14 @@ export default function ChatWindow() {
         console.log("✅ Streaming complete. Final messages:", latestMessages.current);
         setIsStreaming(false);
 
+        // Update sidebar with the new/updated conversation title
+        const title = userMessage.length > 40 ? `${userMessage.slice(0, 40)}...` : userMessage;
+        window.dispatchEvent(
+          new CustomEvent("infoplus:conversation-updated", {
+            detail: { id: activeId, title, isNew: isNewChat },
+          })
+        );
+
         if (isNewChat) {
           skipNextFetch.current = true;
           router.push(`/chat/${activeId}`);
@@ -297,6 +305,14 @@ export default function ChatWindow() {
       // Backend already saved from /chat/message
       console.log("✅ Response complete. Final messages:", latestMessages.current);
       
+      // Update sidebar with the new/updated conversation title
+      const title = userMessage.length > 40 ? `${userMessage.slice(0, 40)}...` : userMessage;
+      window.dispatchEvent(
+        new CustomEvent("infoplus:conversation-updated", {
+          detail: { id: activeId, title, isNew: isNewChat },
+        })
+      );
+
       if (isNewChat) {
         skipNextFetch.current = true;
         router.push(`/chat/${activeId}`);
