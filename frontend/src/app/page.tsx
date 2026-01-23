@@ -17,20 +17,16 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log("🔍 Starting auth check...");
         const res = await api.get("/auth/me");
-        console.log("📊 Auth check response:", res.data);
         if (res.data.authenticated) {
           setIsAuthenticated(true);
           router.replace("/chat");
         } else {
-          console.log("❌ Not authenticated according to frontend response");
           setIsAuthenticated(false);
           // Run debug check to see what backend is sending
           setTimeout(() => debugAuthCheck(), 500);
         }
       } catch (err) {
-        console.error("❌ Auth check failed:", err);
         setIsAuthenticated(false);
         setTimeout(() => debugAuthCheck(), 500);
       }

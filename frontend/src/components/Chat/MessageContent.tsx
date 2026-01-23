@@ -75,8 +75,6 @@ export const MessageContent = ({ content, isLast, isStreaming }: { content: any;
   // Parse content if it's a string, handle if it's undefined
   let parsedContent: any[] = [];
   
-  console.log("🎨 MessageContent received content:", content, "isStreaming:", isStreaming, "isLast:", isLast);
-  
   try {
     if (!content) {
       parsedContent = [];
@@ -116,11 +114,8 @@ export const MessageContent = ({ content, isLast, isStreaming }: { content: any;
 
         // Handle Tool Results
         if (item.type === "tool-result") {
-          console.log("🛠️ Rendering tool-result:", item);
           const toolName = detectToolName(item);
           const toolData = extractToolData(item);
-          
-          console.log("🔧 Tool name:", toolName, "Tool data:", toolData);
 
           if (!toolData) return null;
 

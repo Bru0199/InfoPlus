@@ -59,20 +59,17 @@ export default function ChatWindow() {
     // If we already have messages for this conversation, don't refetch
     // This happens when we navigate from /chat to /chat/{id} after sending a message
     if (latestMessages.current.length > 0 && lastConversationId.current === conversationId) {
-      console.log("✅ Messages already loaded for conversation", conversationId);
       return;
     }
 
     // Skip fetch if we just navigated after streaming (messages already in state)
     if (skipNextFetch.current) {
-      console.log("⏭️ Skipping fetch - messages already loaded from stream");
       skipNextFetch.current = false;
       lastConversationId.current = conversationId;
       return;
     }
 
     // New conversation ID - fetch from backend
-    console.log("🔄 Fetching conversation", conversationId);
     lastConversationId.current = conversationId;
     
     setIsLoading(true);
@@ -81,9 +78,7 @@ export default function ChatWindow() {
         validateStatus: (s) => (s >= 200 && s < 300) || s === 404,
       })
       .then((res) => {
-        console.log(`📥 Loaded conversation ${conversationId}:`, res.status);
         if (res.status === 404) {
-          console.log("⚠️ Conversation not found (404), keeping local messages");
           return;
         }
         if (Array.isArray(res.data)) {
@@ -118,7 +113,6 @@ export default function ChatWindow() {
   };
 
   const appendAssistantToolResult = (item: any) => {
-    console.log("🔧 Appending tool result:", item);
     setMessages((prev) => {
       const current = prev.length > 0 ? prev : latestMessages.current;
       if (current.length === 0) return current;
@@ -132,14 +126,11 @@ export default function ChatWindow() {
         : [];
       contentArray.push({ type: "tool-result", ...item });
       updated[lastIdx] = { ...last, content: contentArray };
-      console.log("✅ Updated assistant message:", updated[lastIdx]);
       return updated;
     });
   };
 
   const replaceLastAssistant = (replacement: any) => {
-    console.log("🔄 Replacing last assistant with:", replacement);
-    
     // If replacement is a raw tool result (has raceName, season, etc.), wrap it
     const isRawToolResult = replacement && !replacement.role && !Array.isArray(replacement.content);
     
@@ -155,8 +146,6 @@ export default function ChatWindow() {
         ? replacement
         : { role: "assistant", content: replacement?.content ?? replacement };
     }
-    
-    console.log("📤 Final payload:", payload);
 
     setMessages((prev) => {
       if (prev.length === 0) return [payload];
@@ -208,7 +197,6 @@ export default function ChatWindow() {
 
     try {
       const url = `${apiBase}/chat/message`;
-      console.log("➡️ POST", url);
 
       const res = await fetch(url, {
         method: "POST",
@@ -248,7 +236,6 @@ export default function ChatWindow() {
             let parsed: any = null;
             try {
               parsed = JSON.parse(dataLine);
-              console.log("📦 Parsed event:", parsed);
             } catch {
               aggregatedText += dataLine;
               updateAssistantText(aggregatedText);
@@ -259,14 +246,12 @@ export default function ChatWindow() {
               aggregatedText += parsed.text;
               updateAssistantText(aggregatedText);
             } else if (parsed?.type === "tool-result") {
-              console.log("🛠️ Received tool-result:", parsed);
               appendAssistantToolResult(parsed);
             }
           }
         }
 
         // Streaming complete - backend already saved from /chat/message
-        console.log("✅ Streaming complete. Final messages:", latestMessages.current);
         setIsStreaming(false);
 
         // Update sidebar with the new/updated conversation title
@@ -291,7 +276,6 @@ export default function ChatWindow() {
 
       // NON-STREAMING FALLBACK
       const json = await res.json();
-      console.log("📦 Non-streaming response received:", json);
       replaceLastAssistant(json);
       
       // Keep streaming effect active for text animation to complete
@@ -303,7 +287,6 @@ export default function ChatWindow() {
       }, animationDuration);
       
       // Backend already saved from /chat/message
-      console.log("✅ Response complete. Final messages:", latestMessages.current);
       
       // Update sidebar with the new/updated conversation title
       const title = userMessage.length > 40 ? `${userMessage.slice(0, 40)}...` : userMessage;
@@ -318,7 +301,6 @@ export default function ChatWindow() {
         router.push(`/chat/${activeId}`);
       }
     } catch (err: any) {
-      console.error("❌ Error sending message:", err);
       replaceLastAssistant({
         role: "assistant",
         content: "Sorry, an error occurred. Please try again.",
